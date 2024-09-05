@@ -43,12 +43,17 @@ function readFilesFromInputFolder(inputFolder: string) {
 
     const instructions = fileContent.split('\n');
     const parsedInstructions = parseInstructionSetString(instructions);
+    console.log(
+      '--------------------------------------------------------------\n'
+    );
 
     console.log(`Reading file (${file})...\n`);
 
     printTableOfInstructions(parsedInstructions);
 
-    console.log('--------------------------------------------------------------\n\n');
+    console.log(
+      '--------------------------------------------------------------\n'
+    );
   }
 }
 

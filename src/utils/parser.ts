@@ -19,12 +19,23 @@ export function classifyInstruction(binary: string): InstructionType | null {
   return null;
 }
 
-function convertBinaryToSignedInt(binaryNumber: string) {
+/**
+ * Parses a binary number string and returns its decimal representation,
+ * handling both positive and negative numbers in two's complement format.
+ *
+ * @param binaryNumber - The binary number as a string.
+ * @returns The decimal representation of the binary number.
+ */
+function parseImmediateWithSign(binaryNumber: string): number {
+  const isNegative = binaryNumber[0] === '1';
   const unsignedInt = parseInt(binaryNumber, 2);
 
-  const signedInt = (unsignedInt << 19) >> 19;
+  if (isNegative) {
+    // shift lógico para esquerda para substrair, 4096 do número, para obter o valor negativo
+    return unsignedInt - (1 << binaryNumber.length);
+  }
 
-  return signedInt;
+  return unsignedInt;
 }
 
 export function parseInstruction(binaryInstruction: string): Instruction {
@@ -57,7 +68,7 @@ export function parseInstruction(binaryInstruction: string): Instruction {
     case 'I': {
       const rd = parseInt(binaryInstruction.slice(20, 25), 2);
       const rs1 = parseInt(binaryInstruction.slice(12, 17), 2);
-      const imm = parseInt(binaryInstruction.slice(0, 12), 2);
+      const imm = parseImmediateWithSign(binaryInstruction.slice(0, 12));
       const funct3 = parseInt(binaryInstruction.slice(17, 20), 2);
 
       return {
@@ -79,7 +90,7 @@ export function parseInstruction(binaryInstruction: string): Instruction {
       const imm4_0Str = binaryInstruction.slice(20, 25);
 
       const immStr = imm11_5Str + imm4_0Str;
-      const imm = parseInt(immStr, 2);
+      const imm = parseImmediateWithSign(immStr);
 
       const funct3 = parseInt(binaryInstruction.slice(17, 20), 2);
 
@@ -104,7 +115,7 @@ export function parseInstruction(binaryInstruction: string): Instruction {
       const imm11Str = binaryInstruction.slice(24, 25); // Bit 11
 
       const immStr = imm12Str + imm11Str + imm10_5Str + imm4_1Str + '0';
-      const signedImm = convertBinaryToSignedInt(immStr);
+      const imm = parseImmediateWithSign(immStr);
 
       const funct3 = parseInt(binaryInstruction.slice(17, 20), 2);
 
@@ -112,7 +123,7 @@ export function parseInstruction(binaryInstruction: string): Instruction {
         type: 'B',
         rs1,
         rs2,
-        imm: signedImm,
+        imm,
         funct3,
         opcode,
         binary: binaryInstruction,
@@ -122,22 +133,22 @@ export function parseInstruction(binaryInstruction: string): Instruction {
     case 'U': {
       const rd = parseInt(binaryInstruction.slice(20, 25), 2);
 
-      const immStr = binaryInstruction.slice(0, 20);
-      const imm = parseInt(immStr, 2) << 12;
+      const immStr = binaryInstruction.slice(0, 20) + '000000000000';
+      const imm = parseImmediateWithSign(immStr);
 
-      return { type: 'U', rd, imm, opcode, binary: binaryInstruction };
+      return { type: 'U', rd, imm, binary: binaryInstruction, opcode };
     }
 
     case 'J': {
       const rd = parseInt(binaryInstruction.slice(20, 25), 2);
 
-      const imm20Str = binaryInstruction.slice(0, 1);
-      const imm10_1Str = binaryInstruction.slice(1, 11);
-      const imm11Str = binaryInstruction.slice(11, 12);
-      const imm19_12Str = binaryInstruction.slice(12, 20);
+      const imm20Str = binaryInstruction.slice(0, 1); // Bit 20
+      const imm10_1Str = binaryInstruction.slice(1, 11); // Bits 10 a 1
+      const imm11Str = binaryInstruction.slice(11, 12); // Bit 11
+      const imm19_12Str = binaryInstruction.slice(12, 20); // Bits 19 a 12
 
       const immStr = imm20Str + imm19_12Str + imm11Str + imm10_1Str + '0';
-      const imm = convertBinaryToSignedInt(immStr);
+      const imm = parseImmediateWithSign(immStr);
 
       return { type: 'J', rd, imm, opcode, binary: binaryInstruction };
     }
