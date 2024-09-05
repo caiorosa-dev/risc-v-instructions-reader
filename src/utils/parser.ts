@@ -19,6 +19,14 @@ export function classifyInstruction(binary: string): InstructionType | null {
   return null;
 }
 
+function convertBinaryToSignedInt(binaryNumber: string) {
+  const unsignedInt = parseInt(binaryNumber, 2);
+
+  const signedInt = (unsignedInt << 19) >> 19;
+
+  return signedInt;
+}
+
 export function parseInstruction(binaryInstruction: string): Instruction {
   const type = classifyInstruction(binaryInstruction);
 
@@ -90,13 +98,13 @@ export function parseInstruction(binaryInstruction: string): Instruction {
       const rs1 = parseInt(binaryInstruction.slice(12, 17), 2);
       const rs2 = parseInt(binaryInstruction.slice(7, 12), 2);
 
-      const imm12Str = binaryInstruction.slice(0, 1);
-      const imm11Str = binaryInstruction.slice(24, 25);
-      const imm10_5Str = binaryInstruction.slice(1, 7);
-      const imm4_1Str = binaryInstruction.slice(20, 24);
+      const imm12Str = binaryInstruction.slice(0, 1); // Bit 12
+      const imm10_5Str = binaryInstruction.slice(1, 7); // Bits 10 a 5
+      const imm4_1Str = binaryInstruction.slice(20, 24); // Bits 4 a 1
+      const imm11Str = binaryInstruction.slice(24, 25); // Bit 11
 
       const immStr = imm12Str + imm11Str + imm10_5Str + imm4_1Str + '0';
-      const imm = parseInt(immStr, 2);
+      const signedImm = convertBinaryToSignedInt(immStr);
 
       const funct3 = parseInt(binaryInstruction.slice(17, 20), 2);
 
@@ -104,7 +112,7 @@ export function parseInstruction(binaryInstruction: string): Instruction {
         type: 'B',
         rs1,
         rs2,
-        imm,
+        imm: signedImm,
         funct3,
         opcode,
         binary: binaryInstruction,
@@ -129,7 +137,7 @@ export function parseInstruction(binaryInstruction: string): Instruction {
       const imm19_12Str = binaryInstruction.slice(12, 20);
 
       const immStr = imm20Str + imm19_12Str + imm11Str + imm10_1Str + '0';
-      const imm = parseInt(immStr, 2);
+      const imm = convertBinaryToSignedInt(immStr);
 
       return { type: 'J', rd, imm, opcode, binary: binaryInstruction };
     }
