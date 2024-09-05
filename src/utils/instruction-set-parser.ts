@@ -24,10 +24,8 @@ function classifyInstructionStatisticType(
 }
 
 export function parseInstructionSetString(
-  instructions: string
+  instructionSet: string[]
 ): InstructionWithStatisticType[] {
-  const instructionSet = instructions.split('\n');
-
   const parsedInstructions: InstructionWithStatisticType[] = [];
 
   instructionSet.forEach((instruction) => {

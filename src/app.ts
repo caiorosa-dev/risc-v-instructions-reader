@@ -1,27 +1,16 @@
+import fs from 'fs';
+import path from 'path';
+
 import {
   InstructionStatisticType,
   InstructionWithStatisticType,
 } from './types';
 import { parseInstructionSetString } from './utils/instruction-set-parser';
 
-const instructions = `
-00a00293
-00500313
-006283b3
-40628e33
-40530eb3
-0062ef33
-0062ffb3
-00500293
-00100313
-406282b3
-fe029ee3
-`;
-
 function printTableOfInstructions(
   instructions: InstructionWithStatisticType[]
 ) {
-  const statisticTable = parsedInstructions.reduce((acc, instruction) => {
+  const statisticTable = instructions.reduce((acc, instruction) => {
     acc['TOTAL'] = (acc['TOTAL'] || 0) + 1;
     acc[instruction.statisticType] = (acc[instruction.statisticType] || 0) + 1;
 
@@ -43,6 +32,24 @@ function printTableOfInstructions(
   ]);
 }
 
-const parsedInstructions = parseInstructionSetString(instructions);
+function readFilesFromInputFolder(inputFolder: string) {
+  const files = fs.readdirSync(inputFolder);
 
-printTableOfInstructions(parsedInstructions);
+  for (const file of files) {
+    const filePath = path.join(inputFolder, file);
+    if (!filePath.endsWith('.txt')) continue;
+
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+
+    const instructions = fileContent.split('\n');
+    const parsedInstructions = parseInstructionSetString(instructions);
+
+    console.log(`Reading file (${file})...\n`);
+
+    printTableOfInstructions(parsedInstructions);
+
+    console.log('--------------------------------------------------------------\n\n');
+  }
+}
+
+readFilesFromInputFolder('./input');
