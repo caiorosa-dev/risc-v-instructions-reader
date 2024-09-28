@@ -6,6 +6,7 @@ import {
   InstructionWithStatisticType,
 } from './types';
 import { parseInstructionSetString } from './utils/instruction-set-parser';
+import { detectAndFixHazards } from './modules/hazart-fixer';
 
 function printTableOfInstructions(
   instructions: InstructionWithStatisticType[]
@@ -29,8 +30,11 @@ function printTableOfInstructions(
     'rs1',
     'rs2',
     'imm',
+    'isNop',
   ]);
 }
+
+function 
 
 function readFilesFromInputFolder(inputFolder: string) {
   const files = fs.readdirSync(inputFolder);
@@ -42,7 +46,10 @@ function readFilesFromInputFolder(inputFolder: string) {
     const fileContent = fs.readFileSync(filePath, 'utf8');
 
     const instructions = fileContent.split('\n');
+
     const parsedInstructions = parseInstructionSetString(instructions);
+    const fixedInstructions = detectAndFixHazards(parsedInstructions);
+
     console.log(
       '--------------------------------------------------------------\n'
     );
@@ -50,6 +57,12 @@ function readFilesFromInputFolder(inputFolder: string) {
     console.log(`Reading file (${file})...\n`);
 
     printTableOfInstructions(parsedInstructions);
+
+    console.log(
+      '--------------------------------------------------------------\nFIXED INSTRUCTIONS:\n'
+    );
+
+    printTableOfInstructions(fixedInstructions);
 
     console.log(
       '--------------------------------------------------------------\n'

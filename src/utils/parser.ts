@@ -41,7 +41,7 @@ function parseImmediateWithSign(binaryNumber: string): number {
 export function parseInstruction(binaryInstruction: string): Instruction {
   const type = classifyInstruction(binaryInstruction);
 
-  if (!type) throw new Error('Unknown instruction type');
+  if (!type) throw new Error(`Unknown instruction type (${binaryInstruction})`);
 
   const opcode = binaryInstruction.slice(25, 32);
 
