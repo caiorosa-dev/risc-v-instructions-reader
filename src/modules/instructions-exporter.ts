@@ -26,6 +26,6 @@ export function exportInstructions(
   instructions: Instruction[],
   fileName: string
 ) {
-  const contentFile = instructions.map(instructions => instructions.binary.toString ()).join('\n');
+  const contentFile = instructions.map(instructions => instructions.binary).join('\n');
   writeFileTxt(fileName, contentFile);
 }
