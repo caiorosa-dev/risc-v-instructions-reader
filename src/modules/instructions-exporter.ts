@@ -9,11 +9,11 @@ function writeFileTxt(nameFile: string, content: string) {
     fs.mkdirSync(packageOutput);
   }
 
-  const fileWay = path.join(packageOutput, '${nameFile}-fixed.txt');
+  const fileWay = path.join(packageOutput, `${nameFile}-fixed.txt`);
 
   fs.writeFileSync(fileWay, content);
   
-  console.log('File ${nameFile}fixed.txt generated successfully in ${packageOutput}');
+  console.log(`File ${nameFile}fixed.txt generated successfully in ${packageOutput}`);
 }
 
 /**
@@ -26,6 +26,6 @@ export function exportInstructions(
   instructions: Instruction[],
   fileName: string
 ) {
-  const contentFile = instructions.map(instruction => instruction.toString()).join('\n');
+  const contentFile = instructions.map(instructions => instructions.binary.toString ()).join('\n');
   writeFileTxt(fileName, contentFile);
 }
