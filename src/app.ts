@@ -68,6 +68,16 @@ function readFilesFromInputFolder(inputFolder: string) {
     );
 
     exportInstructions(fixedInstructions, file.split('.')[0]);
+
+    const amountOfNops = fixedInstructions.filter(
+      (instruction) => instruction.isNop
+    ).length;
+    console.log(
+      `Number of NOPs inserted (and corresponding cycles added): ${amountOfNops}`
+    );
+    console.log(
+      '--------------------------------------------------------------\n'
+    );
   }
 }
 
