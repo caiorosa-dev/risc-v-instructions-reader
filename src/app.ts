@@ -7,6 +7,7 @@ import {
 } from './types';
 import { parseInstructionSetString } from './utils/instruction-set-parser';
 import { detectAndFixHazards } from './modules/hazart-fixer';
+import { exportInstructions } from './modules/instructions-exporter';
 
 function printTableOfInstructions(
   instructions: InstructionWithStatisticType[]
@@ -33,8 +34,6 @@ function printTableOfInstructions(
     'isNop',
   ]);
 }
-
-function 
 
 function readFilesFromInputFolder(inputFolder: string) {
   const files = fs.readdirSync(inputFolder);
@@ -67,6 +66,8 @@ function readFilesFromInputFolder(inputFolder: string) {
     console.log(
       '--------------------------------------------------------------\n'
     );
+
+    exportInstructions(fixedInstructions, file.split('.')[0]);
   }
 }
 

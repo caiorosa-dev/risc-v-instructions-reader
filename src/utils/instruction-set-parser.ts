@@ -31,7 +31,7 @@ export function parseInstructionSetString(
   instructionSet.forEach((instruction) => {
     if (instruction.length < 8) return;
 
-    const binaryInstruction = convertHexToBinary(instruction);
+    const binaryInstruction = convertHexToBinary(instruction).slice(0, 32);
     try {
       const parsedInstruction = parseInstruction(binaryInstruction);
 

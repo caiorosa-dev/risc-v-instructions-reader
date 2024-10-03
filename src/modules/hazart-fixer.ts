@@ -17,7 +17,9 @@ function isInstructionNOP(instruction: InstructionWithStatisticType) {
 function getDistanceBetweenUseAndDef(
   instructions: InstructionWithStatisticType[],
   index: number
-) {
+):
+  | { distance: number; conflictRegister: string }
+  | { distance: -1; conflictRegister: undefined } {
   let distance = 0;
   const selectedInstruction = instructions[index];
 
@@ -26,7 +28,7 @@ function getDistanceBetweenUseAndDef(
     isInstructionNOP(selectedInstruction) ||
     index === instructions.length - 1
   ) {
-    return -1;
+    return { distance: -1, conflictRegister: undefined };
   }
 
   const { rd } = selectedInstruction;
@@ -36,18 +38,18 @@ function getDistanceBetweenUseAndDef(
 
     if (isInstructionWithRD(currentInstruction)) {
       if ('rs1' in currentInstruction && currentInstruction.rs1 === rd) {
-        return distance;
+        return { distance, conflictRegister: 'rs1' };
       }
 
       if (currentInstruction.type === 'R' && currentInstruction.rs2 === rd) {
-        return distance;
+        return { distance, conflictRegister: 'rs2' };
       }
     }
 
     distance++;
   }
 
-  return -1;
+  return { distance: -1, conflictRegister: undefined };
 }
 
 const NOP_INSTRUCTION: InstructionWithStatisticType = {
@@ -68,12 +70,8 @@ export function detectAndFixHazards(
   const fixedInstructions: InstructionWithStatisticType[] = [...instructions];
 
   for (let i = 0; i < fixedInstructions.length; i++) {
-    const distanceToNextUseOfRegisters = getDistanceBetweenUseAndDef(
-      fixedInstructions,
-      i
-    );
-
-    console.log(`Index: ${i}, distance: ${distanceToNextUseOfRegisters}`);
+    const { distance: distanceToNextUseOfRegisters, conflictRegister } =
+      getDistanceBetweenUseAndDef(fixedInstructions, i);
 
     if (distanceToNextUseOfRegisters !== -1) {
       const nopsNeeded = 2 - distanceToNextUseOfRegisters;
@@ -82,7 +80,7 @@ export function detectAndFixHazards(
         const indexToInsert = i + distanceToNextUseOfRegisters + 1;
 
         console.log(
-          `Inserting ${nopsNeeded} NOP(s) at index ${indexToInsert}, because distance is ${distanceToNextUseOfRegisters}`
+          `${nopsNeeded} NOP(s) will be inserted at index ${indexToInsert} due to the use of register ${conflictRegister} defined in instruction ${i}.`
         );
         fixedInstructions.splice(
           indexToInsert,
