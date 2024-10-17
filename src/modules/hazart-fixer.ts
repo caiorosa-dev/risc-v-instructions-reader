@@ -1,3 +1,4 @@
+import { log } from 'node:console';
 import { InstructionWithStatisticType } from '../types';
 
 function isInstructionWithRD(instruction: InstructionWithStatisticType) {
@@ -16,7 +17,8 @@ function isInstructionNOP(instruction: InstructionWithStatisticType) {
 
 function getDistanceBetweenUseAndDef(
   instructions: InstructionWithStatisticType[],
-  index: number
+  index: number,
+  isWithForwarding: boolean
 ):
   | { distance: number; conflictRegister: string }
   | { distance: -1; conflictRegister: undefined } {
@@ -31,19 +33,21 @@ function getDistanceBetweenUseAndDef(
     return { distance: -1, conflictRegister: undefined };
   }
 
+  if (isWithForwarding && selectedInstruction.opcode !== '0000011') {
+    return { distance: -1, conflictRegister: undefined };
+  }
+
   const { rd } = selectedInstruction;
 
   for (let i = index + 1; i < instructions.length; i++) {
     const currentInstruction = instructions[i];
 
-    if (isInstructionWithRD(currentInstruction)) {
-      if ('rs1' in currentInstruction && currentInstruction.rs1 === rd) {
-        return { distance, conflictRegister: 'rs1' };
-      }
+    if ('rs1' in currentInstruction && currentInstruction.rs1 === rd) {
+      return { distance, conflictRegister: 'rs1' };
+    }
 
-      if (currentInstruction.type === 'R' && currentInstruction.rs2 === rd) {
-        return { distance, conflictRegister: 'rs2' };
-      }
+    if ('rs2' in currentInstruction && currentInstruction.rs2 === rd) {
+      return { distance, conflictRegister: 'rs2' };
     }
 
     distance++;
@@ -65,16 +69,20 @@ const NOP_INSTRUCTION: InstructionWithStatisticType = {
 };
 
 export function detectAndFixHazards(
-  instructions: InstructionWithStatisticType[]
+  instructions: InstructionWithStatisticType[],
+  isWithForwarding: boolean
 ) {
   const fixedInstructions: InstructionWithStatisticType[] = [...instructions];
 
   for (let i = 0; i < fixedInstructions.length; i++) {
     const { distance: distanceToNextUseOfRegisters, conflictRegister } =
-      getDistanceBetweenUseAndDef(fixedInstructions, i);
+      getDistanceBetweenUseAndDef(fixedInstructions, i, isWithForwarding);
 
     if (distanceToNextUseOfRegisters !== -1) {
-      const nopsNeeded = 2 - distanceToNextUseOfRegisters;
+      const minimalDistanceBetweenDefAndUse = isWithForwarding ? 1 : 2;
+
+      let nopsNeeded =
+        minimalDistanceBetweenDefAndUse - distanceToNextUseOfRegisters;
 
       if (nopsNeeded > 0) {
         const indexToInsert = i + distanceToNextUseOfRegisters + 1;

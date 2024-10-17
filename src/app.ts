@@ -46,8 +46,19 @@ function readFilesFromInputFolder(inputFolder: string) {
 
     const instructions = fileContent.split('\n');
 
+    console.log(
+      '--------------------------------------------------------------\n'
+    );
     const parsedInstructions = parseInstructionSetString(instructions);
-    const fixedInstructions = detectAndFixHazards(parsedInstructions);
+    const fixedInstructions = detectAndFixHazards(parsedInstructions, false);
+    console.log(
+      '--------------------------------------------------------------\nWITH FORWARDING:\n'
+    );
+
+    const fixedInstructionsWithForwarding = detectAndFixHazards(
+      parsedInstructions,
+      true
+    );
 
     console.log(
       '--------------------------------------------------------------\n'
@@ -61,14 +72,6 @@ function readFilesFromInputFolder(inputFolder: string) {
       '--------------------------------------------------------------\nFIXED INSTRUCTIONS:\n'
     );
 
-    printTableOfInstructions(fixedInstructions);
-
-    console.log(
-      '--------------------------------------------------------------\n'
-    );
-
-    exportInstructions(fixedInstructions, file.split('.')[0]);
-
     const amountOfNops = fixedInstructions.filter(
       (instruction) => instruction.isNop
     ).length;
@@ -78,6 +81,29 @@ function readFilesFromInputFolder(inputFolder: string) {
     console.log(
       '--------------------------------------------------------------\n'
     );
+    printTableOfInstructions(fixedInstructions);
+
+    console.log(
+      '--------------------------------------------------------------\nFIXED INSTRUCTIONS WITH FORWARDING:\n'
+    );
+
+    const amountOfNopsWithForwarding = fixedInstructionsWithForwarding.filter(
+      (instruction) => instruction.isNop
+    ).length;
+    console.log(
+      `Number of NOPs inserted (and corresponding cycles added): ${amountOfNopsWithForwarding}`
+    );
+    console.log(
+      '--------------------------------------------------------------\n'
+    );
+
+    printTableOfInstructions(fixedInstructionsWithForwarding);
+
+    console.log(
+      '--------------------------------------------------------------\n'
+    );
+
+    exportInstructions(fixedInstructions, file.split('.')[0]);
   }
 }
 
