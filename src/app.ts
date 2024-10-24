@@ -8,6 +8,7 @@ import {
 import { parseInstructionSetString } from './utils/instruction-set-parser';
 import { detectAndFixHazards } from './modules/hazart-fixer';
 import { exportInstructions } from './modules/instructions-exporter';
+import { fixBranchHazards } from './modules/branch-fixer';
 
 function printTableOfInstructions(
   instructions: InstructionWithStatisticType[]
@@ -46,6 +47,8 @@ function readFilesFromInputFolder(inputFolder: string) {
 
     const instructions = fileContent.split('\n');
 
+    console.log(`Reading file (${file})...\n`);
+
     console.log(
       '--------------------------------------------------------------\n'
     );
@@ -61,10 +64,15 @@ function readFilesFromInputFolder(inputFolder: string) {
     );
 
     console.log(
+      '--------------------------------------------------------------\nBRANCH FIXED:\n'
+    );
+
+    const branchFixedInstructions = fixBranchHazards(parsedInstructions);
+
+    console.log(
       '--------------------------------------------------------------\n'
     );
 
-    console.log(`Reading file (${file})...\n`);
 
     printTableOfInstructions(parsedInstructions);
 
@@ -78,9 +86,7 @@ function readFilesFromInputFolder(inputFolder: string) {
     console.log(
       `Number of NOPs inserted (and corresponding cycles added): ${amountOfNops}`
     );
-    console.log(
-      '--------------------------------------------------------------\n'
-    );
+
     printTableOfInstructions(fixedInstructions);
 
     console.log(
@@ -93,11 +99,18 @@ function readFilesFromInputFolder(inputFolder: string) {
     console.log(
       `Number of NOPs inserted (and corresponding cycles added): ${amountOfNopsWithForwarding}`
     );
+
+    printTableOfInstructions(fixedInstructionsWithForwarding);
+
     console.log(
       '--------------------------------------------------------------\n'
     );
 
-    printTableOfInstructions(fixedInstructionsWithForwarding);
+    console.log(
+      '--------------------------------------------------------------\nBRANCH FIXED:\n'
+    );
+
+    printTableOfInstructions(branchFixedInstructions);
 
     console.log(
       '--------------------------------------------------------------\n'
