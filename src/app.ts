@@ -9,6 +9,7 @@ import { parseInstructionSetString } from './utils/instruction-set-parser';
 import { detectAndFixHazards } from './modules/hazart-fixer';
 import { exportInstructions } from './modules/instructions-exporter';
 import { fixBranchHazards } from './modules/branch-fixer';
+import { fixHazardsAndReOrderNop } from './modules/re-order-hazard-fixer';
 
 function printTableOfInstructions(
   instructions: InstructionWithStatisticType[]
@@ -36,87 +37,62 @@ function printTableOfInstructions(
   ]);
 }
 
+function processFile(filePath: string) {
+  const fileContent = fs.readFileSync(filePath, 'utf8');
+  const instructions = fileContent.split('\n');
+
+  console.log(`Reading file (${path.basename(filePath)})...\n`);
+  console.log('--------------------------------------------------------------\n');
+
+  const parsedInstructions = parseInstructionSetString(instructions);
+  const fixedInstructions = detectAndFixHazards(parsedInstructions, false);
+  const fixedInstructionsWithForwarding = detectAndFixHazards(parsedInstructions, true);
+  const branchFixedInstructions = fixBranchHazards(parsedInstructions);
+  const reorderedInstructions = fixHazardsAndReOrderNop(parsedInstructions);
+
+  printInstructionDetails(parsedInstructions, fixedInstructions, fixedInstructionsWithForwarding, branchFixedInstructions, reorderedInstructions);
+
+  exportInstructions(fixedInstructions, path.basename(filePath, '.txt'));
+}
+
+function printInstructionDetails(
+  parsedInstructions: InstructionWithStatisticType[],
+  fixedInstructions: InstructionWithStatisticType[],
+  fixedInstructionsWithForwarding: InstructionWithStatisticType[],
+  branchFixedInstructions: InstructionWithStatisticType[],
+  reorderedInstructions: InstructionWithStatisticType[]
+) {
+  printTableOfInstructions(parsedInstructions);
+
+  // console.log('--------------------------------------------------------------\nFIXED INSTRUCTIONS:\n');
+  // printNopCount(fixedInstructions);
+  // printTableOfInstructions(fixedInstructions);
+
+  // console.log('--------------------------------------------------------------\nFIXED INSTRUCTIONS WITH FORWARDING:\n');
+  // printNopCount(fixedInstructionsWithForwarding);
+  // printTableOfInstructions(fixedInstructionsWithForwarding);
+
+  // console.log('--------------------------------------------------------------\nBRANCH FIXED:\n');
+  // printTableOfInstructions(branchFixedInstructions);
+
+  console.log('--------------------------------------------------------------\nREORDERED INSTRUCTIONS:\n');
+  printTableOfInstructions(reorderedInstructions);
+  console.log('--------------------------------------------------------------\n');
+}
+
+function printNopCount(instructions: InstructionWithStatisticType[]) {
+  const amountOfNops = instructions.filter(instruction => instruction.isNop).length;
+  console.log(`Number of NOPs inserted (and corresponding cycles added): ${amountOfNops}`);
+}
+
 function readFilesFromInputFolder(inputFolder: string) {
   const files = fs.readdirSync(inputFolder);
 
   for (const file of files) {
     const filePath = path.join(inputFolder, file);
-    if (!filePath.endsWith('.txt')) continue;
-
-    const fileContent = fs.readFileSync(filePath, 'utf8');
-
-    const instructions = fileContent.split('\n');
-
-    console.log(`Reading file (${file})...\n`);
-
-    console.log(
-      '--------------------------------------------------------------\n'
-    );
-    const parsedInstructions = parseInstructionSetString(instructions);
-    const fixedInstructions = detectAndFixHazards(parsedInstructions, false);
-    console.log(
-      '--------------------------------------------------------------\nWITH FORWARDING:\n'
-    );
-
-    const fixedInstructionsWithForwarding = detectAndFixHazards(
-      parsedInstructions,
-      true
-    );
-
-    console.log(
-      '--------------------------------------------------------------\nBRANCH FIXED:\n'
-    );
-
-    const branchFixedInstructions = fixBranchHazards(parsedInstructions);
-
-    console.log(
-      '--------------------------------------------------------------\n'
-    );
-
-
-    printTableOfInstructions(parsedInstructions);
-
-    console.log(
-      '--------------------------------------------------------------\nFIXED INSTRUCTIONS:\n'
-    );
-
-    const amountOfNops = fixedInstructions.filter(
-      (instruction) => instruction.isNop
-    ).length;
-    console.log(
-      `Number of NOPs inserted (and corresponding cycles added): ${amountOfNops}`
-    );
-
-    printTableOfInstructions(fixedInstructions);
-
-    console.log(
-      '--------------------------------------------------------------\nFIXED INSTRUCTIONS WITH FORWARDING:\n'
-    );
-
-    const amountOfNopsWithForwarding = fixedInstructionsWithForwarding.filter(
-      (instruction) => instruction.isNop
-    ).length;
-    console.log(
-      `Number of NOPs inserted (and corresponding cycles added): ${amountOfNopsWithForwarding}`
-    );
-
-    printTableOfInstructions(fixedInstructionsWithForwarding);
-
-    console.log(
-      '--------------------------------------------------------------\n'
-    );
-
-    console.log(
-      '--------------------------------------------------------------\nBRANCH FIXED:\n'
-    );
-
-    printTableOfInstructions(branchFixedInstructions);
-
-    console.log(
-      '--------------------------------------------------------------\n'
-    );
-
-    exportInstructions(fixedInstructions, file.split('.')[0]);
+    if (filePath.endsWith('.txt')) {
+      processFile(filePath);
+    }
   }
 }
 

@@ -54,3 +54,25 @@ export function getDistanceBetweenUseAndDef(
 
 	return { distance: -1, conflictRegister: undefined };
 }
+
+export function getReadRegisters(
+	instr: InstructionWithStatisticType
+): number[] {
+	const regs: number[] = [];
+	if ('rs1' in instr && instr.rs1 !== 0) {
+		regs.push(instr.rs1);
+	}
+	if ('rs2' in instr && instr.rs2 !== 0) {
+		regs.push(instr.rs2);
+	}
+	return regs;
+}
+
+export function getWrittenRegisters(
+	instr: InstructionWithStatisticType
+): number[] {
+	if ('rd' in instr && instr.rd !== 0) {
+		return [instr.rd];
+	}
+	return [];
+}

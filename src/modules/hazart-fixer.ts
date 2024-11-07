@@ -1,5 +1,5 @@
 import { InstructionWithStatisticType } from '../types';
-import { getDistanceBetweenUseAndDef } from '../utils/hazard';
+import { getDistanceBetweenUseAndDef } from '../utils/helpers';
 import { NOP_INSTRUCTION } from '../utils/nop';
 
 export function detectAndFixHazards(

@@ -1,6 +1,6 @@
-type Register = number;
-type Immediate = number;
-type Funct3 = number;
+export type Register = number;
+export type Immediate = number;
+export type Funct3 = number;
 type Funct7 = number;
 
 export type InstructionType = 'R' | 'I' | 'S' | 'B' | 'U' | 'J';
