@@ -1,6 +1,12 @@
-export type Register = number;
-export type Immediate = number;
-export type Funct3 = number;
+export type InstructionStatisticType = 'ALU' | 'JUMP' | 'BRANCH' | 'MEMORY' | 'OTHER';
+
+export type Configuration = {
+  instructionsTypes: Record<InstructionStatisticType, string[]>;
+};
+
+type Register = number;
+type Immediate = number;
+type Funct3 = number;
 type Funct7 = number;
 
 export type InstructionType = 'R' | 'I' | 'S' | 'B' | 'U' | 'J';
@@ -18,7 +24,7 @@ interface ITypeInstruction {
   type: 'I';
   rd: Register;
   rs1: Register;
-  imm: Immediate; // Imediato de 12 bits
+  imm: Immediate;
   funct3: Funct3;
 }
 
@@ -26,7 +32,7 @@ interface STypeInstruction {
   type: 'S';
   rs1: Register;
   rs2: Register;
-  imm: Immediate; // Imediato dividido em duas partes (imm[11:5] e imm[4:0])
+  imm: Immediate;
   funct3: Funct3;
 }
 
@@ -34,20 +40,20 @@ interface BTypeInstruction {
   type: 'B';
   rs1: Register;
   rs2: Register;
-  imm: Immediate; // Imediato para desvio
+  imm: Immediate;
   funct3: Funct3;
 }
 
 interface UTypeInstruction {
   type: 'U';
   rd: Register;
-  imm: Immediate; // Imediato de 20 bits
+  imm: Immediate;
 }
 
 interface JTypeInstruction {
   type: 'J';
   rd: Register;
-  imm: Immediate; // Imediato para salto
+  imm: Immediate;
 }
 
 export type Instruction = (
@@ -61,4 +67,8 @@ export type Instruction = (
   binary: string;
   opcode: string;
   isNop?: boolean;
+};
+
+export type InstructionWithStatisticType = Instruction & {
+  statisticType: InstructionStatisticType;
 };

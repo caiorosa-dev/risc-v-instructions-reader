@@ -1,5 +1,5 @@
-import { Config } from './config';
-import { InstructionWithStatisticType, InstructionStatisticType } from './types';
+import { Config } from '../config';
+import { InstructionWithStatisticType, InstructionStatisticType } from '../types';
 
 /**
  * Funções para otimizar o pipeline e aplicar técnicas como delayed branch e reordenação.
