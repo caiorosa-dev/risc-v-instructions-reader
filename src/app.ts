@@ -27,13 +27,13 @@ function printTableOfInstructions(
   console.log('Instructions:');
   console.table(instructions, [
     'opcode',
+    'name',
     'type',
     'rd',
     'funct3',
     'rs1',
     'rs2',
     'imm',
-    'isNop',
   ]);
 }
 
@@ -42,15 +42,26 @@ function processFile(filePath: string) {
   const instructions = fileContent.split('\n');
 
   console.log(`Reading file (${path.basename(filePath)})...\n`);
-  console.log('--------------------------------------------------------------\n');
+  console.log(
+    '--------------------------------------------------------------\n'
+  );
 
   const parsedInstructions = parseInstructionSetString(instructions);
   const fixedInstructions = detectAndFixHazards(parsedInstructions, false);
-  const fixedInstructionsWithForwarding = detectAndFixHazards(parsedInstructions, true);
+  const fixedInstructionsWithForwarding = detectAndFixHazards(
+    parsedInstructions,
+    true
+  );
   const branchFixedInstructions = fixBranchHazards(parsedInstructions);
   const reorderedInstructions = fixHazardsAndReOrderNop(parsedInstructions);
 
-  printInstructionDetails(parsedInstructions, fixedInstructions, fixedInstructionsWithForwarding, branchFixedInstructions, reorderedInstructions);
+  printInstructionDetails(
+    parsedInstructions,
+    fixedInstructions,
+    fixedInstructionsWithForwarding,
+    branchFixedInstructions,
+    reorderedInstructions
+  );
 
   exportInstructions(fixedInstructions, path.basename(filePath, '.txt'));
 }
@@ -75,14 +86,22 @@ function printInstructionDetails(
   // console.log('--------------------------------------------------------------\nBRANCH FIXED:\n');
   // printTableOfInstructions(branchFixedInstructions);
 
-  console.log('--------------------------------------------------------------\nREORDERED INSTRUCTIONS:\n');
+  console.log(
+    '--------------------------------------------------------------\nREORDERED INSTRUCTIONS:\n'
+  );
   printTableOfInstructions(reorderedInstructions);
-  console.log('--------------------------------------------------------------\n');
+  console.log(
+    '--------------------------------------------------------------\n'
+  );
 }
 
 function printNopCount(instructions: InstructionWithStatisticType[]) {
-  const amountOfNops = instructions.filter(instruction => instruction.isNop).length;
-  console.log(`Number of NOPs inserted (and corresponding cycles added): ${amountOfNops}`);
+  const amountOfNops = instructions.filter(
+    (instruction) => instruction.isNop
+  ).length;
+  console.log(
+    `Number of NOPs inserted (and corresponding cycles added): ${amountOfNops}`
+  );
 }
 
 function readFilesFromInputFolder(inputFolder: string) {

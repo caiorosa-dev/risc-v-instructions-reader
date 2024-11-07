@@ -60,5 +60,6 @@ export type Instruction = (
 ) & {
   binary: string;
   opcode: string;
+  name?: string;
   isNop?: boolean;
 };
