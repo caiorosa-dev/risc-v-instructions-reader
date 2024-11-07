@@ -5,7 +5,12 @@ export function fixBranchHazards(instructions: InstructionWithStatisticType[]) {
 	const fixedInstructions: InstructionWithStatisticType[] = [...instructions];
 
 	for (let i = 0; i < fixedInstructions.length; i++) {
-		if (fixedInstructions[i].opcode === '1100011') {
+		const currentInstruction = fixedInstructions[i];
+
+		if (
+			currentInstruction.type === 'B' ||
+			currentInstruction.statisticType === 'JUMP'
+		) {
 			let nopsNeeded = 2;
 
 			const indexToInsert = i + 1;

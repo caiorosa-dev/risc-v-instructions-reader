@@ -4,7 +4,7 @@ export function isInstructionWithRD(instruction: InstructionWithStatisticType) {
 	return instruction.type === 'R' || instruction.type === 'I';
 }
 
-export function isInstructionNOP(instruction: InstructionWithStatisticType) {
+export function isNOP(instruction: InstructionWithStatisticType) {
 	return (
 		instruction.type === 'I' &&
 		instruction.rd === 0 &&
@@ -26,7 +26,7 @@ export function getDistanceBetweenUseAndDef(
 
 	if (
 		!isInstructionWithRD(selectedInstruction) ||
-		isInstructionNOP(selectedInstruction) ||
+		isNOP(selectedInstruction) ||
 		index === instructions.length - 1
 	) {
 		return { distance: -1, conflictRegister: undefined };
