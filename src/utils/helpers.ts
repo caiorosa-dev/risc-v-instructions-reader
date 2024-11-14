@@ -4,6 +4,10 @@ export function isInstructionWithRD(instruction: InstructionWithStatisticType) {
 	return instruction.type === 'R' || instruction.type === 'I';
 }
 
+export function createCopiedArrayOfInstructions(instructions: InstructionWithStatisticType[]) {
+	return instructions.map(instruction => ({ ...instruction }));
+}
+
 export function isNOP(instruction: InstructionWithStatisticType) {
 	return (
 		instruction.type === 'I' &&

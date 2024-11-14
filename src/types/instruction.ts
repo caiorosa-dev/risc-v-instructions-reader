@@ -62,4 +62,5 @@ export type Instruction = (
   opcode: string;
   name?: string;
   isNop?: boolean;
+  moved?: boolean;
 };

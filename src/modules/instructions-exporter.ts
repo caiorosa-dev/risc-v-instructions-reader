@@ -20,8 +20,9 @@ function writeFileTxt(nameFile: string, content: string) {
 
 /**
  * Exporta as instruções em formato binário para um arquivo.
- * @param instructions - Array de instruções a serem exportadas.
- * @param fileName - Nome do arquivo a ser exportado.
+ * @author Jordan Lippert
+ * @param {Instruction[]} instructions - Array de instruções a serem exportadas.
+ * @param {string} fileName - Nome do arquivo a ser exportado.
  */
 export function exportInstructions(
   instructions: Instruction[],

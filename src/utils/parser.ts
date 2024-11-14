@@ -21,7 +21,8 @@ export function classifyInstruction(binary: string): InstructionType | null {
 
 export function classifyInstructionName(
   opcode: string,
-  func3?: number
+  func3?: number,
+  func7?: number
 ): string | undefined {
   switch (opcode) {
     case '0110111':
@@ -95,7 +96,11 @@ export function classifyInstructionName(
     case '0110011':
       switch (func3) {
         case 0:
-          return 'add';
+          if (func7 === 0) {
+            return 'add';
+          }
+
+          return 'sub';
         case 4:
           return 'xor';
         case 6:
@@ -149,7 +154,7 @@ export function parseInstruction(binaryInstruction: string): Instruction {
       const funct3 = parseInt(binaryInstruction.slice(17, 20), 2);
       const funct7 = parseInt(binaryInstruction.slice(0, 7), 2);
 
-      const name = classifyInstructionName(opcode, funct3);
+      const name = classifyInstructionName(opcode, funct3, funct7);
 
       return {
         type: 'R',

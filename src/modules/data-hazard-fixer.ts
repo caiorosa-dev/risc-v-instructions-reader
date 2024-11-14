@@ -1,12 +1,19 @@
 import { InstructionWithStatisticType } from '../types';
-import { getDistanceBetweenUseAndDef } from '../utils/helpers';
+import { createCopiedArrayOfInstructions, getDistanceBetweenUseAndDef } from '../utils/helpers';
 import { NOP_INSTRUCTION } from '../utils/nop';
 
-export function detectAndFixHazards(
+/**
+ * Detects and fixes hazards in the given set of instructions.
+ * @author Caio Rosa
+ * @param {InstructionWithStatisticType[]} instructions - The list of instructions to process.
+ * @param {boolean} isWithForwarding - Flag indicating if forwarding is enabled.
+ * @returns {InstructionWithStatisticType[]} - The list of instructions with hazards fixed.
+ */
+export function fixDataHazards(
   instructions: InstructionWithStatisticType[],
   isWithForwarding: boolean
 ) {
-  const fixedInstructions: InstructionWithStatisticType[] = [...instructions];
+  const fixedInstructions: InstructionWithStatisticType[] = createCopiedArrayOfInstructions(instructions);
 
   for (let i = 0; i < fixedInstructions.length; i++) {
     const { distance: distanceToNextUseOfRegisters, conflictRegister } =
@@ -21,9 +28,9 @@ export function detectAndFixHazards(
       if (nopsNeeded > 0) {
         const indexToInsert = i + distanceToNextUseOfRegisters + 1;
 
-        console.log(
-          `${nopsNeeded} NOP(s) will be inserted at index ${indexToInsert} due to the use of register ${conflictRegister} defined in instruction ${i}.`
-        );
+        // console.log(
+        //   `${nopsNeeded} NOP(s) will be inserted at index ${indexToInsert} due to the use of register ${conflictRegister} defined in instruction ${i}.`
+        // );
         fixedInstructions.splice(
           indexToInsert,
           0,

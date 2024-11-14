@@ -10,5 +10,9 @@
   },
   "scripts": {
     "start": "ts-node-dev src/app.ts"
+  },
+  "dependencies": {
+    "colors": "^1.4.0",
+    "console-table-printer": "^2.12.1"
   }
 }

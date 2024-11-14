@@ -1,41 +1,15 @@
 import fs from 'fs';
 import path from 'path';
+import colors from 'colors';
 
 import {
-  InstructionStatisticType,
   InstructionWithStatisticType,
 } from './types';
 import { parseInstructionSetString } from './utils/instruction-set-parser';
-import { detectAndFixHazards } from './modules/hazart-fixer';
 import { exportInstructions } from './modules/instructions-exporter';
-import { fixBranchHazards } from './modules/branch-fixer';
-import { fixHazardsAndReOrderNop } from './modules/re-order-hazard-fixer';
-
-function printTableOfInstructions(
-  instructions: InstructionWithStatisticType[]
-) {
-  const statisticTable = instructions.reduce((acc, instruction) => {
-    acc['TOTAL'] = (acc['TOTAL'] || 0) + 1;
-    acc[instruction.statisticType] = (acc[instruction.statisticType] || 0) + 1;
-
-    return acc;
-  }, {} as Record<InstructionStatisticType | 'TOTAL', number>);
-
-  console.log('Statistic table:');
-  console.table(statisticTable);
-
-  console.log('Instructions:');
-  console.table(instructions, [
-    'opcode',
-    'name',
-    'type',
-    'rd',
-    'funct3',
-    'rs1',
-    'rs2',
-    'imm',
-  ]);
-}
+import { fixBranchHazards } from './modules/branch-hazard-fixer';
+import { fixDataAndBranchHazards, fixHazardsAndReOrderNop, fixHazardsApplyingDelayedBranch } from './modules/re-ordenation-instructions';
+import { printTableOfInstructions } from './utils/ui';
 
 function processFile(filePath: string) {
   const fileContent = fs.readFileSync(filePath, 'utf8');
@@ -47,52 +21,59 @@ function processFile(filePath: string) {
   );
 
   const parsedInstructions = parseInstructionSetString(instructions);
-  const fixedInstructions = detectAndFixHazards(parsedInstructions, false);
-  const fixedInstructionsWithForwarding = detectAndFixHazards(
-    parsedInstructions,
-    true
-  );
-  const branchFixedInstructions = fixBranchHazards(parsedInstructions);
-  const reorderedInstructions = fixHazardsAndReOrderNop(parsedInstructions);
+
+  const reorderedDataHazardInstructions = fixHazardsAndReOrderNop(parsedInstructions); // 1
+  const branchFixedInstructions = fixBranchHazards(parsedInstructions); // 2
+  const delayedBranchFixedInstructions = fixHazardsApplyingDelayedBranch(parsedInstructions); // 3
+  const finalReorderedInstructions = fixDataAndBranchHazards(parsedInstructions); // 4
 
   printInstructionDetails(
     parsedInstructions,
-    fixedInstructions,
-    fixedInstructionsWithForwarding,
+    reorderedDataHazardInstructions,
     branchFixedInstructions,
-    reorderedInstructions
+    delayedBranchFixedInstructions,
+    finalReorderedInstructions
   );
 
-  exportInstructions(fixedInstructions, path.basename(filePath, '.txt'));
+  exportInstructions(finalReorderedInstructions, path.basename(filePath, '.txt'));
 }
 
 function printInstructionDetails(
   parsedInstructions: InstructionWithStatisticType[],
-  fixedInstructions: InstructionWithStatisticType[],
-  fixedInstructionsWithForwarding: InstructionWithStatisticType[],
+  reorderedDataHazardInstructions: InstructionWithStatisticType[],
   branchFixedInstructions: InstructionWithStatisticType[],
-  reorderedInstructions: InstructionWithStatisticType[]
+  delayedBranchFixedInstructions: InstructionWithStatisticType[],
+  finalReorderedInstructions: InstructionWithStatisticType[]
 ) {
+  console.log(colors.gray.bold('--------------------------------------------------------------\n'));
+  console.log(colors.cyan.bold('PARSED INSTRUCTIONS:\n'));
   printTableOfInstructions(parsedInstructions);
+  console.log(colors.gray.bold('--------------------------------------------------------------'));
 
-  // console.log('--------------------------------------------------------------\nFIXED INSTRUCTIONS:\n');
-  // printNopCount(fixedInstructions);
-  // printTableOfInstructions(fixedInstructions);
+  console.log('\n\n\n');
+  console.log(colors.magenta.bold('1. REORDERED DATA HAZARD INSTRUCTIONS:\n'));
+  printTableOfInstructions(reorderedDataHazardInstructions);
+  printNopCount(reorderedDataHazardInstructions);
+  console.log(colors.gray.bold('--------------------------------------------------------------'));
 
-  // console.log('--------------------------------------------------------------\nFIXED INSTRUCTIONS WITH FORWARDING:\n');
-  // printNopCount(fixedInstructionsWithForwarding);
-  // printTableOfInstructions(fixedInstructionsWithForwarding);
+  console.log('\n\n\n');
+  console.log(colors.green.bold('2. BRANCH FIXED:\n'));
+  printTableOfInstructions(branchFixedInstructions);
+  printNopCount(branchFixedInstructions);
+  console.log(colors.gray.bold('--------------------------------------------------------------'));
 
-  // console.log('--------------------------------------------------------------\nBRANCH FIXED:\n');
-  // printTableOfInstructions(branchFixedInstructions);
+  console.log('\n\n\n');
+  console.log(colors.yellow.bold('3. DELAYED BRANCH REORDERED:\n'));
+  printTableOfInstructions(delayedBranchFixedInstructions);
+  printNopCount(delayedBranchFixedInstructions);
+  console.log(colors.gray.bold('--------------------------------------------------------------'));
 
-  console.log(
-    '--------------------------------------------------------------\nREORDERED INSTRUCTIONS:\n'
-  );
-  printTableOfInstructions(reorderedInstructions);
-  console.log(
-    '--------------------------------------------------------------\n'
-  );
+  console.log('\n\n\n');
+  console.log(colors.white.bold('4. FINAL REORDERED INSTRUCTIONS:\n'));
+  printTableOfInstructions(finalReorderedInstructions);
+  printNopCount(finalReorderedInstructions);
+
+  console.log(colors.gray.bold('--------------------------------------------------------------\n'));
 }
 
 function printNopCount(instructions: InstructionWithStatisticType[]) {
